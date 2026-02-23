@@ -1,3 +1,7 @@
+WAS WURDE GEÄNDERT?
+
+Die Lautstärke der Sprach-Anweisungen wurde erhöht.
+
 WAS KANN GETESTET WERDEN?
 
 Bitte teste die grundlegende Funktionalität der App:
@@ -16,4 +20,3 @@ Einstellungen → Anzeige & Helligkeit → Automatische Sperre → "Nie"
 SICHERHEITSHINWEIS: Bitte denke nach der Nutzung der App unbedingt daran, die automatische Bildschirmsperre in den Einstellungen wieder einzuschalten, damit dein iPhone geschützt bleibt!
 
 Vielen Dank für deine Hilfe beim Testen!
-
