@@ -33,9 +33,9 @@ class TimerScreen extends StatefulWidget {
 // Session data class to hold duration and optional audio file
 class SessionData {
   final int durationSeconds;
-  final String? audioFile;  // Optional audio file to play before the session
-  final int audioDurationMs;  // Duration of the audio file in milliseconds
-  
+  final String? audioFile; // Optional audio file to play before the session
+  final int audioDurationMs; // Duration of the audio file in milliseconds
+
   SessionData(this.durationSeconds, [this.audioFile, this.audioDurationMs = 0]);
 }
 
@@ -44,9 +44,9 @@ const int kGongDurationMs = 6080;
 class _TimerScreenState extends State<TimerScreen> {
   bool _isCounting = false;
   final AudioPlayer _player = AudioPlayer();
-  double _progress = 0.0;  // Progress from 0.0 to 1.0
+  double _progress = 0.0; // Progress from 0.0 to 1.0
   Timer? _progressTimer;
-  
+
   late final List<SessionData> _sessions = kDebugMode
       ? [
           SessionData(16, 'release/ganzkoerperatmung.mp3', 8000),
@@ -59,12 +59,12 @@ class _TimerScreenState extends State<TimerScreen> {
         ]
       : [
           SessionData(300, 'release/ganzkoerperatmung.mp3', 8000),
-          SessionData(60,  'release/atem-halten.mp3', 8700),
+          SessionData(60, 'release/atem-halten.mp3', 8700),
           SessionData(300, 'release/ganzkoerperatmung.mp3', 8000),
-          SessionData(60,  'release/atem-halten.mp3', 8700),
+          SessionData(60, 'release/atem-halten.mp3', 8700),
           SessionData(300, 'release/ganzkoerperatmung.mp3', 8000),
           SessionData(120, 'release/wellenatmen.mp3', 9000),
-          SessionData(60,  'release/nachspueren.mp3', 5600),
+          SessionData(60, 'release/nachspueren.mp3', 5600),
         ];
 
   @override
@@ -73,7 +73,7 @@ class _TimerScreenState extends State<TimerScreen> {
     _player.dispose();
     super.dispose();
   }
-  
+
   int _calculateTotalDuration() {
     return _sessions.fold(0, (sum, session) {
       return sum + session.durationSeconds * 1000;
@@ -83,23 +83,23 @@ class _TimerScreenState extends State<TimerScreen> {
   Future<void> _playAudioAndWait(String audioPath) async {
     // Stop any previous playback to ensure clean state
     await _player.stop();
-    
+
     final completer = Completer<void>();
-    
+
     // Set up listener BEFORE playing to avoid race condition
     final subscription = _player.onPlayerComplete.listen((_) {
       if (!completer.isCompleted) {
         completer.complete();
       }
     });
-    
+
     try {
       await _player.play(AssetSource(audioPath));
     } catch (e) {
       await subscription.cancel();
       rethrow;
     }
-    
+
     await completer.future;
     await subscription.cancel();
   }
@@ -111,15 +111,17 @@ class _TimerScreenState extends State<TimerScreen> {
     });
 
     final totalDuration = _calculateTotalDuration();
-    debugPrint('Total duration: ${totalDuration}ms (${(totalDuration / 1000).toStringAsFixed(1)}s)');
+    debugPrint(
+      'Total duration: ${totalDuration}ms (${(totalDuration / 1000).toStringAsFixed(1)}s)',
+    );
     final startTime = DateTime.now();
-    
+
     _progressTimer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
       final elapsed = DateTime.now().difference(startTime).inMilliseconds;
       setState(() {
         _progress = (elapsed / totalDuration).clamp(0.0, 1.0);
       });
-      
+
       if (_progress >= 1.0) {
         timer.cancel();
       }
@@ -127,14 +129,15 @@ class _TimerScreenState extends State<TimerScreen> {
 
     for (int i = 0; i < _sessions.length; i++) {
       SessionData session = _sessions[i];
-      
-      int remainingDurationMs = session.durationSeconds * 1000 - kGongDurationMs;
+
+      int remainingDurationMs =
+          session.durationSeconds * 1000 - kGongDurationMs;
 
       if (session.audioFile != null) {
         remainingDurationMs -= session.audioDurationMs;
         await _playAudioAndWait(session.audioFile!);
       }
-      
+
       if (remainingDurationMs > 0) {
         await Future.delayed(Duration(milliseconds: remainingDurationMs));
       }
@@ -162,9 +165,7 @@ class _TimerScreenState extends State<TimerScreen> {
               child: FractionallySizedBox(
                 heightFactor: _progress,
                 widthFactor: 1.0,
-                child: Container(
-                  color: Colors.deepPurple.withOpacity(0.3),
-                ),
+                child: Container(color: Colors.deepPurple.withOpacity(0.3)),
               ),
             ),
           ],
@@ -173,9 +174,7 @@ class _TimerScreenState extends State<TimerScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Multi Timer'),
-      ),
+      appBar: AppBar(title: const Text('Multi Timer')),
       body: Center(
         child: ElevatedButton(
           onPressed: _startTimer,
