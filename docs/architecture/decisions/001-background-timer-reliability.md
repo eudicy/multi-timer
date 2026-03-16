@@ -10,7 +10,7 @@ The timer app's gong sound fails to play after 5 minutes when the device screen 
 
 **Recommended Solution**: Implement OS-native local notifications using `flutter_local_notifications` package. This is the industry-standard approach used by timer apps and provides reliable cross-platform functionality with minimal battery impact.
 
-**Key Trade-offs**: Increased implementation complexity and platform-specific configuration in exchange for reliable timer delivery when screen is locked.
+**Key Trade-offs**: Increased implementation complexity and platform-specific configuration in exchange for reliable timer delivery when screen is locked on both iOS and Android.
 
 ## Context
 
@@ -34,19 +34,20 @@ Both iOS and Android suspend apps when the screen locks to conserve battery. Thi
 4. Do Nothing / Accept Current Behavior (Not Viable)
 5. Document Manual Workarounds for Users (Not Recommended)
 6. Purchase/Use Existing Timer App (Viable Alternative)
+7. Background Audio Session with `audio_session` + `wakelock_plus` (Not Recommended)
 
 ## Options Comparison Matrix
 
-| Criteria | Option 1: flutter_local_notifications | Option 2: awesome_notifications | Option 3: wakelock_plus | Option 4: Do Nothing | Option 5: Manual Workarounds | Option 6: Use Existing App |
-|----------|--------------------------------------|--------------------------------|------------------------|---------------------|----------------------------|---------------------------|
-| **Reliability** | ⭐⭐⭐⭐⭐ Excellent | ⭐⭐⭐⭐⭐ Excellent | ⭐⭐⭐⭐ Good (if screen stays on) | ⭐ Poor | ⭐⭐ Poor | ⭐⭐⭐⭐⭐ Excellent |
-| **Cross-platform** | ⭐⭐⭐⭐⭐ Full support | ⭐⭐⭐⭐⭐ Full support | ⭐⭐⭐⭐⭐ Full support | ⭐⭐⭐⭐⭐ N/A | ⭐⭐ Platform-specific | ⭐⭐⭐⭐⭐ Full support |
-| **Battery Efficiency** | ⭐⭐⭐⭐⭐ Excellent | ⭐⭐⭐⭐⭐ Excellent | ⭐ Very Poor | ⭐⭐⭐⭐⭐ N/A | ⭐ Very Poor | ⭐⭐⭐⭐⭐ Excellent |
-| **User Experience** | ⭐⭐⭐⭐⭐ Excellent | ⭐⭐⭐⭐⭐ Excellent | ⭐⭐ Poor | ⭐ Unacceptable | ⭐⭐ Poor | ⭐⭐⭐⭐ Good (depends on app) |
-| **Development Complexity** | ⭐⭐⭐ Moderate | ⭐⭐ Higher | ⭐⭐⭐⭐⭐ Very Simple | ⭐⭐⭐⭐⭐ None | ⭐⭐⭐⭐ Low Code | ⭐⭐⭐⭐⭐ None |
-| **Maintenance Burden** | ⭐⭐⭐⭐ Low | ⭐⭐⭐ Moderate | ⭐⭐⭐⭐ Low | ⭐⭐⭐⭐⭐ None | ⭐ Very High | ⭐⭐⭐⭐⭐ None |
-| **Industry Standard** | ⭐⭐⭐⭐⭐ Yes | ⭐⭐⭐⭐ Acceptable | ⭐⭐ Uncommon | ⭐ Unacceptable | ⭐ Unprofessional | ⭐⭐⭐⭐⭐ Standard |
-| **Overall Recommendation** | **RECOMMENDED** | Alternative | Not Recommended | Not Viable | Not Recommended | Viable Alternative |
+| Criteria | Option 1: flutter_local_notifications | Option 2: awesome_notifications | Option 3: wakelock_plus | Option 4: Do Nothing | Option 5: Manual Workarounds | Option 6: Use Existing App | Option 7: Background Audio Session |
+|----------|--------------------------------------|--------------------------------|------------------------|---------------------|----------------------------|---------------------------|-----------------------------------|
+| **Reliability** | ⭐⭐⭐⭐⭐ Excellent | ⭐⭐⭐⭐⭐ Excellent | ⭐⭐⭐⭐ Good (if screen stays on) | ⭐ Poor | ⭐⭐ Poor | ⭐⭐⭐⭐⭐ Excellent | ⭐⭐⭐ iOS: Good with silent loop / Android: Poor (Doze) |
+| **Cross-platform** | ⭐⭐⭐⭐⭐ Full support | ⭐⭐⭐⭐⭐ Full support | ⭐⭐⭐⭐⭐ Full support | ⭐⭐⭐⭐⭐ N/A | ⭐⭐ Platform-specific | ⭐⭐⭐⭐⭐ Full support | ⭐⭐ iOS only for screen-lock benefit |
+| **Battery Efficiency** | ⭐⭐⭐⭐⭐ Excellent | ⭐⭐⭐⭐⭐ Excellent | ⭐ Very Poor | ⭐⭐⭐⭐⭐ N/A | ⭐ Very Poor | ⭐⭐⭐⭐⭐ Excellent | ⭐⭐⭐⭐ Good on iOS / ⭐ Poor on Android (screen-on or foreground service) |
+| **User Experience** | ⭐⭐⭐⭐⭐ Excellent | ⭐⭐⭐⭐⭐ Excellent | ⭐⭐ Poor | ⭐ Unacceptable | ⭐⭐ Poor | ⭐⭐⭐⭐ Good (depends on app) | ⭐⭐⭐⭐ Good on iOS / ⭐⭐ Poor on Android |
+| **Development Complexity** | ⭐⭐⭐ Moderate | ⭐⭐ Higher | ⭐⭐⭐⭐⭐ Very Simple | ⭐⭐⭐⭐⭐ None | ⭐⭐⭐⭐ Low Code | ⭐⭐⭐⭐⭐ None | ⭐⭐⭐ Moderate (silent loop, session lifecycle, interruption handling) |
+| **Maintenance Burden** | ⭐⭐⭐⭐ Low | ⭐⭐⭐ Moderate | ⭐⭐⭐⭐ Low | ⭐⭐⭐⭐⭐ None | ⭐ Very High | ⭐⭐⭐⭐⭐ None | ⭐⭐⭐ Moderate (fragile iOS "hack", Android gap) |
+| **Industry Standard** | ⭐⭐⭐⭐⭐ Yes | ⭐⭐⭐⭐ Acceptable | ⭐⭐ Uncommon | ⭐ Unacceptable | ⭐ Unprofessional | ⭐⭐⭐⭐⭐ Standard | ⭐⭐⭐ Used in production but acknowledged as workaround |
+| **Overall Recommendation** | **RECOMMENDED** | Alternative | Not Recommended | Not Viable | Not Recommended | Viable Alternative | Alternative for iOS-only scope; not recommended for cross-platform |
 
 ## Detailed Options Analysis
 
@@ -291,6 +292,47 @@ Abandon custom development and use an existing timer app from the App Store or P
 
 Requires evaluation for feature fit with specific use case (5-1-5-1-5-2-1 minute pattern).
 
+### Option 7: Background Audio Session with `audio_session` + `wakelock_plus`
+
+Keep the existing timer logic by using the OS audio subsystem to prevent app suspension.
+
+#### Summary
+
+Declare `UIBackgroundModes: audio` in `Info.plist` and configure an `AVAudioSession` with category `.playback` via the `audio_session` package, so iOS treats the app as an audio player and does not suspend it when the screen locks. However, iOS deactivates the session after a few seconds of genuine silence, which freezes `Future.delayed()` — the only workaround is to loop a silent audio file throughout the exercise to keep the session active. On Android, `wakelock_plus` acquires only a screen wake lock (`FLAG_KEEP_SCREEN_ON`) and provides no CPU protection once the screen turns off; reliable Android support additionally requires a foreground service with a CPU partial wake lock (e.g. `flutter_foreground_task`).
+
+#### Positive Consequences
+
+- Screen can lock on iOS without stopping the timer
+- No notification permission prompt required on iOS
+- Gongs and instructions play as in-app audio with no entries in the notification tray
+- Existing `Future.delayed()` timer logic remains largely unchanged on iOS
+
+#### Negative Consequences
+
+- Silent audio looping required on iOS: without it, iOS deactivates the session during 5-minute gaps and freezes the Dart isolate; adds a fragile extra asset and an additional `AudioPlayer` instance
+- The silent-loop workaround relies on undocumented Apple behaviour and could break with an OS update
+- `wakelock_plus` is screen-only on Android (`FLAG_KEEP_SCREEN_ON`); Doze mode will freeze `Future.delayed()` during gaps once the screen turns off
+- Android requires a foreground service with `PARTIAL_WAKE_LOCK` to work correctly, which shows a persistent notification — the same UX cost as Option 1 but with greater implementation complexity
+- Incoming calls and audio focus changes can deactivate the iOS session and suspend the timer
+- Total complexity (silent loop, interruption handling, session lifecycle, Android foreground service) matches or exceeds Option 1 without its cross-platform reliability
+
+#### Mitigations for Negative Consequences
+
+- **Silent audio looping**: Bundle a short silent `.wav` file and loop it at zero volume with `mixWithOthers` for the duration of the exercise; widely used in production meditation apps
+- **iOS interruptions**: Use `audio_session`'s `interruptionEventStream` to reactivate the session after interruptions; recalculate timer progress from elapsed wall-clock time
+- **Android Doze mode**: Implement `flutter_foreground_task` with `wakeLock: true`; accept that a persistent foreground notification is visible, equivalent to the notification approach
+- **Workaround fragility**: Monitor `audio_session` issue tracker and Apple release notes; have a tested fallback to Option 1 ready
+
+**Overall assessment**: Mitigations bring total complexity close to Option 1 while delivering weaker cross-platform reliability; not recommended when both iOS and Android are in scope.
+
+#### Technical Implementation Details
+
+- Use `audio_session` package for iOS `AVAudioSession` configuration (`AVAudioSessionCategory.playback`, `mixWithOthers`)
+- Add `UIBackgroundModes: audio` to `ios/Runner/Info.plist`
+- Bundle and loop a silent `.wav` asset to keep the audio session active during silent gaps
+- Use `flutter_foreground_task` with `wakeLock: true` for Android background execution
+- Subscribe to `audio_session.interruptionEventStream` to handle call interruptions on iOS
+
 ## Technical Considerations
 
 ### Current Timer Implementation
@@ -393,4 +435,5 @@ The current implementation lacks:
 - OS-native timing mechanisms that work when app is suspended
 - Any wake locks or foreground services
 - Local notification scheduling
+- An active audio session that would grant iOS background execution as an audio app
 

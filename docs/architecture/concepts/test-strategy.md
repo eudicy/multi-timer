@@ -255,8 +255,8 @@ simulate:
 
 - **Android Doze mode** — the OS throttles or suspends `Timer` and
   `Future.delayed` when the screen is off and the app holds no wakelock
-- **iOS background execution** — iOS stops audio and suspends the app unless
-  the audio session is configured for background playback
+- **iOS background execution** — iOS suspends the app when the screen locks;
+  the Dart isolate is paused and `Future.delayed()` timers stop counting
 - **`AppLifecycleState.paused`** — the Flutter engine notifies the app when it
   moves to the background, but how the OS behaves after that depends on the
   platform and device manufacturer
@@ -266,66 +266,16 @@ simulate:
 Even emulators do not replicate OS power management. **Real devices are
 required.**
 
-### Required code changes
+### Implementation prerequisite
 
-The app will likely stop working when the screen locks until these changes are
-made. The manual tests below are only meaningful after all of them are in place.
+The background execution fix is an architectural decision documented in
+**ADR-001: Background Timer Reliability with Screen Lock**. The manual tests
+below are only meaningful once the chosen solution from that ADR has been fully
+implemented on the target platform.
 
-#### Add packages
-
-```yaml
-# pubspec.yaml — dependencies
-dependencies:
-  audio_session: ^0.2.1   # configures the audio session on iOS and Android
-  wakelock_plus: ^1.2.10  # prevents Android from sleeping during the timer
-```
-
-#### iOS — background audio
-
-In `ios/Runner/Info.plist`, add:
-
-```xml
-<key>UIBackgroundModes</key>
-<array>
-  <string>audio</string>
-</array>
-```
-
-#### Both platforms — audio session configuration
-
-Call this once before starting playback (e.g. at the beginning of
-`_startTimer()`):
-
-```dart
-import 'package:audio_session/audio_session.dart';
-
-final session = await AudioSession.instance;
-await session.configure(const AudioSessionConfiguration(
-  avAudioSessionCategory: AVAudioSessionCategory.playback,
-  avAudioSessionCategoryOptions:
-      AVAudioSessionCategoryOptions.mixWithOthers,
-  androidAudioAttributes: AndroidAudioAttributes(
-    contentType: AndroidAudioContentType.music,
-    usage: AndroidAudioUsage.media,
-  ),
-  androidWillPauseWhenDucked: false,
-));
-await session.setActive(true);
-```
-
-#### Android — wakelock
-
-Acquire the wakelock when the timer starts and release it when it ends:
-
-```dart
-import 'package:wakelock_plus/wakelock_plus.dart';
-
-// in _startTimer(), before the session loop:
-await WakelockPlus.enable();
-
-// after the session loop completes:
-await WakelockPlus.disable();
-```
+The observable behaviour under test — gong sounds and guided audio firing at
+the correct times while the screen is locked — is the same regardless of which
+implementation option is selected.
 
 ### Test protocol
 
@@ -366,7 +316,7 @@ Execution
   [ ] Wait for the screen to lock automatically (within 30 s)
   [ ] Leave the phone locked and undisturbed for at least 5 minutes
 
-Verification — background audio
+Verification — background execution
   [ ] Guided audio plays at t ≈ 0 s (session 1 starts)
   [ ] Gong plays at t ≈ 294 s
   [ ] Guided audio plays at t ≈ 300 s (session 2 starts)
@@ -402,4 +352,4 @@ Edge cases (run separately)
 | --------------------------- | ---------------- | ------------------------------------ | ------------------------------------- |
 | Logic (timing, scheduling)  | Automated        | `test`                               | Extract `TimerSchedule` class         |
 | UI state                    | Automated        | `flutter_test`, `fake_async`, `mocktail` | Inject `AudioPlayer`              |
-| Screen lock / background    | Manual checklist | Real device, release build           | `audio_session` + `wakelock_plus`     |
+| Screen lock / background    | Manual checklist | Real device, release build           | ADR-001 solution implemented          |
