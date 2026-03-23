@@ -1,0 +1,5 @@
+# 3rd party dependencies
+node_modules/
+
+# Flutter generated documentation
+**/ios/**/LaunchImage.imageset/
