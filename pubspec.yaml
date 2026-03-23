@@ -39,6 +39,7 @@ dependencies:
   # Temporary workaround for iOS package validation warning as suggested
   # in https://github.com/dart-lang/native/issues/3004#issuecomment-3921940973
   objective_c: 9.1.0
+  equatable: ^2.0.8
 
 dev_dependencies:
   flutter_test:

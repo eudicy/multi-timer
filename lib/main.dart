@@ -104,7 +104,7 @@ class _TimerScreenState extends State<TimerScreen> {
     await subscription.cancel();
   }
 
-  Future<void> _startTimer() async {
+  Future<void> _runExerciseSequence() async {
     setState(() {
       _isCounting = true;
       _progress = 0.0;
@@ -177,7 +177,7 @@ class _TimerScreenState extends State<TimerScreen> {
       appBar: AppBar(title: const Text('Multi Timer')),
       body: Center(
         child: ElevatedButton(
-          onPressed: _startTimer,
+          onPressed: _runExerciseSequence,
           child: const Text('Start'),
         ),
       ),
