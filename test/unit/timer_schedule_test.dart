@@ -46,7 +46,7 @@ void main() {
     test('When a single session, then ExerciseFinishedEvent offset is session duration', () {
       final sessionDurationMs = 1_000_000;
       final arbitraryDurationMs = 123;
-      final schedule = TimerSchedule([SessionData(sessionDurationMs ~/ 1000, null, arbitraryDurationMs)]);
+      final schedule = TimerSchedule([SessionData(sessionDurationMs, null, arbitraryDurationMs)]);
 
       final actualEvents = schedule.buildEvents();
 
@@ -58,9 +58,9 @@ void main() {
       final sessionDurationMs = 1000;
       final arbitraryDurationMs = 123;
       final schedule = TimerSchedule([
-        SessionData(sessionDurationMs ~/ 1000, null, arbitraryDurationMs),
-        SessionData(sessionDurationMs ~/ 1000, null, arbitraryDurationMs),
-        SessionData(sessionDurationMs ~/ 1000, null, arbitraryDurationMs),
+        SessionData(sessionDurationMs, null, arbitraryDurationMs),
+        SessionData(sessionDurationMs, null, arbitraryDurationMs),
+        SessionData(sessionDurationMs, null, arbitraryDurationMs),
       ]);
 
       final actualEvents = schedule.buildEvents();
@@ -83,7 +83,7 @@ void main() {
       final sessionDurationMs = 15_000;
       final sessionAudioFile = 'session_audio.mp3';
       final sessionAudioDurationMs = 3000;
-      final schedule = TimerSchedule([SessionData(sessionDurationMs ~/ 1000, sessionAudioFile, sessionAudioDurationMs)]);
+      final schedule = TimerSchedule([SessionData(sessionDurationMs, sessionAudioFile, sessionAudioDurationMs)]);
 
       final actualEvents = schedule.buildEvents();
 
@@ -98,7 +98,7 @@ void main() {
       final sessionDurationMs = 15_000;
       final sessionAudioFile = null;
       final sessionAudioDurationMs = 0;
-      final schedule = TimerSchedule([SessionData(sessionDurationMs ~/ 1000, sessionAudioFile, sessionAudioDurationMs)]);
+      final schedule = TimerSchedule([SessionData(sessionDurationMs, sessionAudioFile, sessionAudioDurationMs)]);
 
       final actualEvents = schedule.buildEvents();
 
@@ -113,8 +113,8 @@ void main() {
       final sessionAudioFile = 'session_audio.mp3';
       final sessionAudioDurationMs = 3000;
       final schedule = TimerSchedule([
-        SessionData(sessionDurationMs ~/ 1000, sessionAudioFile, sessionAudioDurationMs),
-        SessionData(sessionDurationMs ~/ 1000, sessionAudioFile, sessionAudioDurationMs),
+        SessionData(sessionDurationMs, sessionAudioFile, sessionAudioDurationMs),
+        SessionData(sessionDurationMs, sessionAudioFile, sessionAudioDurationMs),
       ]);
 
       final actualEvents = schedule.buildEvents();
@@ -130,8 +130,8 @@ void main() {
       final sessionAudioFile = 'session_audio.mp3';
       final sessionAudioDurationMs = 3000;
       final schedule = TimerSchedule([
-        SessionData(sessionDurationMs ~/ 1000, sessionAudioFile, sessionAudioDurationMs),
-        SessionData(sessionDurationMs ~/ 1000, sessionAudioFile, sessionAudioDurationMs),
+        SessionData(sessionDurationMs, sessionAudioFile, sessionAudioDurationMs),
+        SessionData(sessionDurationMs, sessionAudioFile, sessionAudioDurationMs),
       ]);
 
       final actualEvents = schedule.buildEvents();

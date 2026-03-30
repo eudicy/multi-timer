@@ -32,12 +32,11 @@ class TimerScreen extends StatefulWidget {
 
 // Session data class to hold duration and optional audio file
 class SessionData {
-  final int durationSeconds;
-  int get durationMs => durationSeconds * 1000;
+  final int durationMs; // Duration of the session in milliseconds
   final String? audioFile; // Optional audio file to play before the session
   final int audioDurationMs; // Duration of the audio file in milliseconds
 
-  SessionData(this.durationSeconds, [this.audioFile, this.audioDurationMs = 0]);
+  SessionData(this.durationMs, [this.audioFile, this.audioDurationMs = 0]);
 }
 
 const int kGongDurationMs = 6080;
@@ -51,22 +50,22 @@ class _TimerScreenState extends State<TimerScreen> {
 
   late final List<SessionData> _sessions = kDebugMode
       ? [
-          SessionData(16, 'release/ganzkoerperatmung.mp3', 8000),
-          SessionData(16, 'release/atem-halten.mp3', 8700),
-          SessionData(16, 'release/ganzkoerperatmung.mp3', 8000),
-          SessionData(16, 'release/atem-halten.mp3', 8700),
-          SessionData(16, 'release/ganzkoerperatmung.mp3', 8000),
-          SessionData(17, 'release/wellenatmen.mp3', 9000),
-          SessionData(13, 'release/nachspueren.mp3', 5600),
+          SessionData(16_000, 'release/ganzkoerperatmung.mp3', 8000),
+          SessionData(16_000, 'release/atem-halten.mp3', 8700),
+          SessionData(16_000, 'release/ganzkoerperatmung.mp3', 8000),
+          SessionData(16_000, 'release/atem-halten.mp3', 8700),
+          SessionData(16_000, 'release/ganzkoerperatmung.mp3', 8000),
+          SessionData(17_000, 'release/wellenatmen.mp3', 9000),
+          SessionData(13_000, 'release/nachspueren.mp3', 5600),
         ]
       : [
-          SessionData(300, 'release/ganzkoerperatmung.mp3', 8000),
-          SessionData(60, 'release/atem-halten.mp3', 8700),
-          SessionData(300, 'release/ganzkoerperatmung.mp3', 8000),
-          SessionData(60, 'release/atem-halten.mp3', 8700),
-          SessionData(300, 'release/ganzkoerperatmung.mp3', 8000),
-          SessionData(120, 'release/wellenatmen.mp3', 9000),
-          SessionData(60, 'release/nachspueren.mp3', 5600),
+          SessionData(300_000, 'release/ganzkoerperatmung.mp3', 8000),
+          SessionData(60_000, 'release/atem-halten.mp3', 8700),
+          SessionData(300_000, 'release/ganzkoerperatmung.mp3', 8000),
+          SessionData(60_000, 'release/atem-halten.mp3', 8700),
+          SessionData(300_000, 'release/ganzkoerperatmung.mp3', 8000),
+          SessionData(120_000, 'release/wellenatmen.mp3', 9000),
+          SessionData(60_000, 'release/nachspueren.mp3', 5600),
         ];
 
   @override

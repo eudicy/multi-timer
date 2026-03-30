@@ -100,14 +100,14 @@ void main() {
   group('TimerSchedule', () {
     test('totalDurationMs sums all sessions', () {
       final schedule = TimerSchedule([
-        SessionData(300, 'a.mp3', 8000),
-        SessionData(60),
+        SessionData(300_000, 'a.mp3', 8000),
+        SessionData(60_000),
       ]);
       expect(schedule.totalDurationMs, equals(360 * 1000));
     });
 
     test('gong is the last event of a session with no audio', () {
-      final schedule = TimerSchedule([SessionData(60)]);
+      final schedule = TimerSchedule([SessionData(60_000)]);
       final events = schedule.buildEvents();
       expect(events.last.audioFile, equals('gong.mp3'));
       // gong starts at: 60000 - kGongDurationMs
@@ -116,7 +116,7 @@ void main() {
 
     test('guided audio fires before the gong in the same session', () {
       final schedule = TimerSchedule([
-        SessionData(300, 'breathing.mp3', 8000),
+        SessionData(300_000, 'breathing.mp3', 8000),
       ]);
       final events = schedule.buildEvents();
       expect(events[0].audioFile, equals('breathing.mp3'));
