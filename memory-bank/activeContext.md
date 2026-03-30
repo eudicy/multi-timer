@@ -110,19 +110,14 @@ The git history shows steady development of the core breathing timer functionali
 
 ### Current Implementation Approach
 
-- **Single increment delivery**: Develop complete feature with 11
-  testable intermediate steps
-- **Steps 1-7**: Additive infrastructure and validation (don't break
-  existing functionality)
-- **Step 8**: Transformation (replace timer with notifications)
-- **Steps 9-11**: Refinement and edge case handling
-- **Each step independently testable and committable**
-
-**Prerequisite (Step 0): Extract `TimerSchedule`** — extract timing
-logic from `_TimerScreenState` into `lib/timer_schedule.dart`. This
-is required before unit tests can be written (ADR-002) and also
-provides the notification schedule calculation (ADR-001). Should be
-done before or alongside Step 1.
+- **Single increment delivery**: 16 independently testable and
+  committable steps
+- **Steps 1-2**: ✅ Complete — TimerSchedule extraction and cleanup
+- **Steps 3-5**: Widget test infrastructure and wiring
+- **Steps 6-12**: Additive notification infrastructure and validation
+  (don't break existing functionality)
+- **Step 13**: Transformation (replace timer with notifications)
+- **Steps 14-16**: Refinement and edge case handling
 
 ### Still Pending Beta Feedback
 
@@ -168,22 +163,25 @@ The code subtracts audio and gong durations from total session time to achieve p
 
 ## Next Immediate Steps
 
-**Revised sequence — widget tests before Step 0a:**
+**Step 3 — Make `AudioPlayer` injectable:**
 
-Step 0a (wire `_runExerciseSequence()` to `TimerSchedule`) will be done
-*under test coverage*. That requires AudioPlayer to be injectable first.
-Agreed sequence:
+Constructor injection on `TimerScreen` (StatefulWidget). Production
+caller in `main()` passes a real `AudioPlayer`; tests pass a mock.
+Accessed in `_TimerScreenState` via `widget.audioPlayer`.
 
-1. **Make `AudioPlayer` injectable** — constructor injection on
-   `TimerScreen` (StatefulWidget). Production caller passes a real
-   `AudioPlayer`; tests pass a mock.
-2. **Add `mocktail`** to dev dependencies.
-3. **Write widget tests** for `_runExerciseSequence()` against the
-   current inline loop (tests go green on existing code).
-4. **Step 0a** — replace inline loop with `TimerSchedule.buildEvents()`
-   iteration; existing widget tests serve as regression harness.
+**Step 4 — Write widget tests for `_runExerciseSequence()`:**
 
-**After Step 0a: Step 1 — Foundation Setup**
+Add `mocktail` (and `fake_async` if needed) to dev dependencies.
+Write widget tests against the *current* inline loop — tests must go
+green before proceeding to Step 5.
+
+**Step 5 — Wire `_runExerciseSequence()` to `TimerSchedule`:**
+
+Replace inline timing loop with iteration over
+`TimerSchedule(sessions).buildEvents()`. Still uses `Future.delayed()`.
+Existing widget tests from Step 4 serve as regression harness.
+
+**Step 6 — Foundation Setup:**
 
 Add notification infrastructure without changing app behavior:
 

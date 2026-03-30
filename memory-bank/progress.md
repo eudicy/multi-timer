@@ -53,24 +53,24 @@
 
 **Implementation Steps**:
 
-0. 🚧 Extract `TimerSchedule` — nearly complete. One item remains
-   (see activeContext.md): (0a) wire `_runExerciseSequence()` to
-   `TimerSchedule.buildEvents()`. Step 0b done: `SessionData.durationMs`
-   is now the backing field; `SessionData` and constants extracted to
-   own files (`session_data.dart`, `constants.dart`)
-1. ⏳ Foundation Setup - Add dependencies and configuration
-2. ⏳ Permission Flow - Request notification permissions
-3. ⏳ Single Notification Proof - Validate notifications fire while locked
-4. ⏳ Audio Asset Conversion - Convert gong.mp3 to gong.aiff
-5. ⏳ Notification with Sound - Validate audio playback
-6. ⏳ Schedule Calculation - Pre-calculate all 7 notification times
-7. ⏳ Parallel Notification Schedule - Run alongside existing timer
-8. ⏳ Replace Timer Logic - Remove old timer approach
-9. ⏳ Progress Bar Refinement - Handle screen lock/unlock
-10. ⏳ Cleanup & Edge Cases - Cancellation and notification management
-11. ⏳ End-to-End Validation - Real-world testing
+1. ✅ Extract `TimerSchedule` — event classes, pure calculation, unit tests, rename `_startTimer` → `_runExerciseSequence`
+2. ✅ Clean up `SessionData` — rename field to `durationMs`, extract to own file, extract constants
+3. ⏳ Make `AudioPlayer` injectable — constructor injection on `TimerScreen`
+4. ⏳ Write widget tests for `_runExerciseSequence()` — add `mocktail`
+5. ⏳ Wire `_runExerciseSequence()` to `TimerSchedule.buildEvents()`
+6. ⏳ Foundation Setup — add `flutter_local_notifications`, `timezone`, platform config
+7. ⏳ Permission Flow — request notification permissions
+8. ⏳ Single Notification Proof — validate notifications fire while locked
+9. ⏳ Audio Asset Conversion — convert gong.mp3 to gong.aiff
+10. ⏳ Notification with Sound — validate audio playback
+11. ⏳ Schedule Calculation — pre-calculate all 16 notification times
+12. ⏳ Parallel Notification Schedule — run alongside existing timer
+13. ⏳ Replace Timer Logic — remove old `Future.delayed()` approach
+14. ⏳ Progress Bar Refinement — handle screen lock/unlock
+15. ⏳ Cleanup & Edge Cases — cancellation and notification management
+16. ⏳ End-to-End Validation — real-world testing
 
-**Status**: Step 0 in progress (TimerSchedule extraction, see activeContext.md)
+**Status**: Steps 1-2 complete; Step 3 next (see activeContext.md)
 
 **Next TestFlight Release**: Version 1.1.0 with screen lock fix
 
@@ -137,7 +137,7 @@ TestFlight deployment completed. App is live in TestFlight with 2 beta testers i
 
 **Last Completed**: Audio volume increased (v1.0.0+2); deployed to TestFlight Jan 17, 2026
 
-**Next Immediate Task**: Make `AudioPlayer` injectable → add `mocktail` → widget tests → Step 0a (see activeContext.md for full revised sequence)
+**Next Immediate Task**: Step 3 — make `AudioPlayer` injectable (see activeContext.md)
 
 **Version Tracking**:
 - Git tag v4 marks source code for TestFlight build 1.0.0+1
