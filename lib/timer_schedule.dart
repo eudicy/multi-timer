@@ -1,4 +1,4 @@
-import 'package:multi_timer/main.dart';
+import 'package:multi_timer/constants.dart';
 import 'package:multi_timer/playback_requested_event.dart';
 import 'package:multi_timer/session_data.dart';
 import 'package:multi_timer/timer_event.dart';

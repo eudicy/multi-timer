@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:multi_timer/constants.dart';
 import 'dart:async';
 
 import 'package:multi_timer/session_data.dart';
@@ -31,9 +32,6 @@ class TimerScreen extends StatefulWidget {
   @override
   State<TimerScreen> createState() => _TimerScreenState();
 }
-
-const int kGongDurationMs = 6080;
-const String kGongAudioFile = 'gong.mp3';
 
 class _TimerScreenState extends State<TimerScreen> {
   bool _isCounting = false;
