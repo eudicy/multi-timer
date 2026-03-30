@@ -137,7 +137,7 @@ TestFlight deployment completed. App is live in TestFlight with 2 beta testers i
 
 **Last Completed**: Audio volume increased (v1.0.0+2); deployed to TestFlight Jan 17, 2026
 
-**Next Immediate Task**: Step 0a — wire `_runExerciseSequence()` to `TimerSchedule.buildEvents()`, then Step 1 (add notification dependencies)
+**Next Immediate Task**: Make `AudioPlayer` injectable → add `mocktail` → widget tests → Step 0a (see activeContext.md for full revised sequence)
 
 **Version Tracking**:
 - Git tag v4 marks source code for TestFlight build 1.0.0+1
@@ -161,7 +161,7 @@ TestFlight deployment completed. App is live in TestFlight with 2 beta testers i
 - **Documented In**: ADR-001
 - **Solution**: Use OS-native notifications (implementation plan defined)
 - **Beta Feedback**: Testers' most urgent need; #1 priority
-- **Status**: Starting implementation (Step 1 of 11)
+- **Status**: Step 0 in progress — completing extraction, then Step 1
 - **Target Version**: 1.1.0
 
 ### Non-Critical
@@ -268,7 +268,7 @@ None currently identified.
 
 ### Code Metrics
 
-- **Total Files**: 1 Dart file (main.dart, 188 lines)
+- **Total Files**: 7 Dart files (main.dart + 6 extracted lib files)
 - **Dependencies**: 2 production packages (cupertino_icons, audioplayers)
 - **Audio Assets**: 8 files (1 gong + 4 release + 2 debug + 1 unused)
 - **Platforms**: iOS (active), Android (configured, not focused)

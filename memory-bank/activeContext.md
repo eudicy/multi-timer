@@ -168,34 +168,49 @@ The code subtracts audio and gong durations from total session time to achieve p
 
 ## Next Immediate Steps
 
-**Step 0a — Wire `_runExerciseSequence()` to `TimerSchedule` (only remaining Step 0 item):**
+**Revised sequence — widget tests before Step 0a:**
 
-Replace the inline timing loop in `_runExerciseSequence()` with a call
-to `TimerSchedule(sessions).buildEvents()`. The loop currently
-calculates delays manually using `Future.delayed()`. After this change
-it drives execution by iterating the event list — still via
-`Future.delayed()`. The switch to OS notifications comes in Step 8.
+Step 0a (wire `_runExerciseSequence()` to `TimerSchedule`) will be done
+*under test coverage*. That requires AudioPlayer to be injectable first.
+Agreed sequence:
 
-**Step 1: Foundation Setup** (after Step 0)
+1. **Make `AudioPlayer` injectable** — constructor injection on
+   `TimerScreen` (StatefulWidget). Production caller passes a real
+   `AudioPlayer`; tests pass a mock.
+2. **Add `mocktail`** to dev dependencies.
+3. **Write widget tests** for `_runExerciseSequence()` against the
+   current inline loop (tests go green on existing code).
+4. **Step 0a** — replace inline loop with `TimerSchedule.buildEvents()`
+   iteration; existing widget tests serve as regression harness.
 
-Add notification infrastructure without changing app behavior.
+**After Step 0a: Step 1 — Foundation Setup**
 
-Tasks:
+Add notification infrastructure without changing app behavior:
 
-- Add `flutter_local_notifications` and `timezone` dependencies to
-  pubspec.yaml
+- Add `flutter_local_notifications` and `timezone` to pubspec.yaml
 - Configure iOS (Info.plist permissions)
 - Configure Android (AndroidManifest.xml)
-- Initialize notification plugin in main()
-
-Success criteria:
-
-- `flutter pub get` succeeds
-- App builds and runs without errors
-- No behavior change — timer still works as before
+- Initialize notification plugin in `main()`
 
 Expected commit:
 `build(deps): add flutter_local_notifications for background timing`
+
+## Resume Discussion
+
+**Topic: StatefulWidget and constructor injection (INCOMPLETE)**
+
+At end of last session, a tutorial on dependency injection for Flutter
+widgets was interrupted. Resume point:
+
+- User is **not yet familiar** with the StatefulWidget/State
+  relationship in Flutter's framework
+- Explanation started: `AudioPlayer` must move from being instantiated
+  inside `_TimerScreenState` to being a constructor parameter on
+  `TimerScreen`, accessed in State via `widget.audioPlayer`
+- **Next question to ask the user**: "Do you understand why `State` can
+  access `widget.audioPlayer` — i.e. what the relationship between a
+  `State` and its `StatefulWidget` is in Flutter's framework?"
+- Resume this tutorial before starting the implementation
 
 ## Blockers
 

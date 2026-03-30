@@ -72,7 +72,7 @@ The code precisely subtracts audio durations to maintain accurate overall timing
 ### Main Timer Loop
 
 ```dart
-Future<void> _startTimer() async {
+Future<void> _runExerciseSequence() async {
   // 1. Enter counting state
   // 2. Start progress timer (visual updates every 500ms)
   // 3. For each session:
