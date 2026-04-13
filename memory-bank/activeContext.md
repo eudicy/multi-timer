@@ -2,44 +2,42 @@
 
 ## Current Iteration Goal
 
-**Fix screen lock issue to enable automatic display sleep mode**
+### Fix screen lock issue to enable automatic display sleep mode
 
-Implement notification-based timing approach (documented in ADR-001) so users can complete the 20-minute breathing exercise sequence with their device's automatic display sleep enabled.
+Implement notification-based timing approach (documented in ADR-001) so users
+can complete the 20-minute breathing exercise sequence with their device's
+automatic display sleep enabled.
 
 ## Current Focus
 
-### Step 0: Extract `TimerSchedule` 🚧 Nearly Complete
+### Step 3: Make `AudioPlayer` injectable ✅ Complete
 
-Extracting timing logic from `_TimerScreenState` into a pure Dart class. TDD approach.
+Constructor injection on `TimerScreen` (StatefulWidget). Completed this session.
 
-**Completed:**
+**Completed this session:**
 
-- ✅ `lib/timer_event.dart` — abstract base class with `offsetMs`, `Equatable`
-- ✅ `lib/exercise_finished_event.dart` — extends `TimerEvent`
-- ✅ `lib/playback_requested_event.dart` — extends `TimerEvent`, non-nullable `audioFile`
-- ✅ `lib/timer_schedule.dart` — pure calculation, `buildEvents()` returns `List<TimerEvent>`;
-  stateless helpers: `produceOptionalSessionStartPlaybackEvent` →
-  `List<PlaybackRequestedEvent>`, `produceSessionEndPlaybackEvent` and
-  `produceExerciseFinishedEvent` → single events
-- ✅ `lib/session_data.dart` — `SessionData` extracted from `main.dart`
-- ✅ `lib/constants.dart` — `kGongDurationMs` and `kGongAudioFile` extracted from `main.dart`
-- ✅ `SessionData.durationMs` is now the backing field (was `durationSeconds`);
-  getter removed; all `SessionData(...)` call sites pass milliseconds;
-  `~/ 1000` workarounds removed from tests
-- ✅ `test/unit/timer_schedule_test.dart` — full suite, all green:
-  - `ExerciseFinishedEvent` offsets: empty, single, three sessions
-  - `PlaybackRequestedEvent`: no sessions, single with audio, single without audio,
-    two sessions (instruction offset, gong offset)
-- ✅ Renamed `_startTimer()` → `_runExerciseSequence()` in `main.dart`
-- ✅ `dart format` applied
+- ✅ `TimerScreen` accepts non-nullable `AudioPlayer` as positional constructor param
+- ✅ `_TimerScreenState` accesses it via getter `AudioPlayer get _player => widget._player`
+- ✅ `MultiTimerApp.build` passes real `AudioPlayer()` to `TimerScreen`
+- ✅ `TimerScreen` + `_TimerScreenState` extracted from `main.dart` → `lib/timer_screen.dart`
+- ✅ `test/widget/timer_screen_test.dart` created — `MockAudioPlayer` via `mocktail`,
+  `dispose()` stubbed, widget test green
+- ✅ `mocktail: ^1.0.5` and `fake_async: ^1.3.3` added to dev_dependencies
+- ✅ Test strategy doc updated to reflect non-nullable injection pattern
+- ✅ Committed: `refactor: TimerScreen allows mocking AudioPlayer for testing`
 
 ### Up next: Notification-based background timing
 
-Replacing `Future.delayed()` timer approach with OS-native scheduled notifications to maintain accurate timing when screen locks.
+Replacing `Future.delayed()` timer approach with OS-native scheduled
+notifications to maintain accurate timing when screen locks.
 
-**Previous Achievement**: Audio volume increased and deployed as v1.0.0+2. All 4 German voice instruction audio files were re-exported at higher volume. Deployed to TestFlight.
+**Previous Achievement**: Audio volume increased and deployed as v1.0.0+2.
+All 4 German voice instruction audio files were re-exported at higher volume.
+Deployed to TestFlight.
 
-**Previous Achievement**: TestFlight deployment completed successfully. All 8 steps completed:
+**Previous Achievement**: TestFlight deployment completed successfully.
+All 8 steps completed:
+
 - ✅ App Store Connect record created
 - ✅ Distribution certificate configured
 - ✅ Xcode project signing set up
@@ -64,31 +62,36 @@ Replacing `Future.delayed()` timer approach with OS-native scheduled notificatio
 
 ### Beta Feedback Received
 
-**Priority 1: Screen Lock Issue**
+#### Priority 1: Screen Lock Issue
 
 - Beta testers reported that the screen lock limitation is their most urgent need
 - They wish the app would work while automatic display sleep mode is enabled
-- **Impact**: 
+- **Impact**:
   - Users must manually disable auto-lock in Settings before each practice session
   - Users must remember to re-enable auto-lock after practice
   - **Security risk**: Forgetting to re-enable leaves device unprotected
   - Creates friction and cognitive burden (pre/post practice routine)
 - **Decision**: Implement notification-based approach from ADR-001
 
-**Priority 2: Audio Volume** ✅ Resolved in v1.0.0+2
+#### Priority 2: Audio Volume ✅ Resolved in v1.0.0+2
 
 - Beta tester suggested increasing the volume of the audio instructions
 - **Impact**: Refinement - app was usable but audio could be clearer
-- **Solution**: Re-exported all 4 German voice instruction audio files at higher volume
+- **Solution**: Re-exported all 4 German voice instruction audio files at
+  higher volume
 - **Released**: v1.0.0+2 deployed to TestFlight (build: Jan 17, 2026)
 
-**Prioritization Rationale**: Screen lock issue creates security risk (users may forget to re-enable auto-lock) and adds friction to every practice session. Audio volume is an enhancement that can be addressed in a subsequent release.
+**Prioritization Rationale**: Screen lock issue creates security risk (users may
+forget to re-enable auto-lock) and adds friction to every practice session.
+Audio volume is an enhancement that can be addressed in a subsequent release.
 
 ### Previous Development
 
-The git history shows steady development of the core breathing timer functionality:
+The git history shows steady development of the core breathing timer
+functionality:
 
-- Latest feature: Added "Nachspüren" (sensing/feeling) session to complete the 7-session sequence
+- Latest feature: Added "Nachspüren" (sensing/feeling) session to complete
+  the 7-session sequence
 - Recent fixes: Audio playback reliability improvements
 - Progress indicator: Visual feedback during exercise sequence
 - Audio integration: German-language exercise instructions play before each session
@@ -113,7 +116,8 @@ The git history shows steady development of the core breathing timer functionali
 - **Single increment delivery**: 16 independently testable and
   committable steps
 - **Steps 1-2**: ✅ Complete — TimerSchedule extraction and cleanup
-- **Steps 3-5**: Widget test infrastructure and wiring
+- **Step 3**: ✅ Complete — AudioPlayer injectable, widget test infrastructure
+- **Steps 4-5**: Widget tests for `_runExerciseSequence()` and wiring to `TimerSchedule`
 - **Steps 6-12**: Additive notification infrastructure and validation
   (don't break existing functionality)
 - **Step 13**: Transformation (replace timer with notifications)
@@ -138,7 +142,7 @@ This pattern allows rapid iteration without waiting through 20-minute sequences.
 
 ### Audio File Organization
 
-```
+```text
 assets/
   - gong.mp3 (session end marker)
   - release/
@@ -159,27 +163,29 @@ Each session duration accounts for:
 2. Silent practice time (bulk of session)
 3. Gong sound duration (6080ms, end of session)
 
-The code subtracts audio and gong durations from total session time to achieve precise timing.
+The code subtracts audio and gong durations from total session time to achieve
+precise timing.
 
 ## Next Immediate Steps
 
-**Step 3 — Make `AudioPlayer` injectable:**
-
-Constructor injection on `TimerScreen` (StatefulWidget). Production
-caller in `main()` passes a real `AudioPlayer`; tests pass a mock.
-Accessed in `_TimerScreenState` via `widget.audioPlayer`.
-
 **Step 4 — Write widget tests for `_runExerciseSequence()`:**
 
-Add `mocktail` (and `fake_async` if needed) to dev dependencies.
-Write widget tests against the *current* inline loop — tests must go
-green before proceeding to Step 5.
+Write widget tests against the *current* inline loop using `fake_async`
+and `MockAudioPlayer`. Tests must go green before proceeding to Step 5.
+Infrastructure already in place: `mocktail`, `fake_async`, `MockAudioPlayer`,
+`test/widget/timer_screen_test.dart`.
+
+Scenarios to cover (from test strategy):
+
+- Initial state: `AppBar` + "Start" button visible
+- Counting state: black `Scaffold`, no `AppBar`, progress bar visible
+- After completion: returns to initial state
 
 **Step 5 — Wire `_runExerciseSequence()` to `TimerSchedule`:**
 
 Replace inline timing loop with iteration over
 `TimerSchedule(sessions).buildEvents()`. Still uses `Future.delayed()`.
-Existing widget tests from Step 4 serve as regression harness.
+Widget tests from Step 4 serve as regression harness.
 
 **Step 6 — Foundation Setup:**
 
@@ -192,23 +198,6 @@ Add notification infrastructure without changing app behavior:
 
 Expected commit:
 `build(deps): add flutter_local_notifications for background timing`
-
-## Resume Discussion
-
-**Topic: StatefulWidget and constructor injection (INCOMPLETE)**
-
-At end of last session, a tutorial on dependency injection for Flutter
-widgets was interrupted. Resume point:
-
-- User is **not yet familiar** with the StatefulWidget/State
-  relationship in Flutter's framework
-- Explanation started: `AudioPlayer` must move from being instantiated
-  inside `_TimerScreenState` to being a constructor parameter on
-  `TimerScreen`, accessed in State via `widget.audioPlayer`
-- **Next question to ask the user**: "Do you understand why `State` can
-  access `widget.audioPlayer` — i.e. what the relationship between a
-  `State` and its `StatefulWidget` is in Flutter's framework?"
-- Resume this tutorial before starting the implementation
 
 ## Blockers
 
@@ -233,9 +222,13 @@ The project follows lean principles:
 
 ### Development in Sandbox
 
-Development occurs in a Linux VM to protect the host Mac from AI agent operations. Changes sync to Mac for iOS building via rsync with filters for .git, .gitignore, and .rsyncignore files.
+Development occurs in a Linux VM to protect the host Mac from AI agent
+operations. Changes sync to Mac for iOS building via rsync with filters for
+.git, .gitignore, and .rsyncignore files.
 
 ### Shamanic and Yoga Practice Context
 
-This is not a general-purpose timer app. It serves a specific breathing exercise rooted in self-healing principles from shamanic and yoga traditions. The fixed sequence and German audio instructions are intentional and core to this practice.
-
+This is not a general-purpose timer app. It serves a specific breathing
+exercise rooted in self-healing principles from shamanic and yoga traditions.
+The fixed sequence and German audio instructions are intentional and core to
+this practice.

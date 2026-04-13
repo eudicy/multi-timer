@@ -27,11 +27,13 @@ flutter_test: (sdk)
 flutter_lints: ^6.0.0
 test: ^1.29.0
 pub_api_client: ^3.2.0
+mocktail: ^1.0.5       # mock AudioPlayer in widget tests (no code generation)
+fake_async: ^1.3.3     # control Timer/Future.delayed in widget tests
 ```
 
 ### Audio Package
 
-**audioplayers ^6.5.1**
+#### audioplayers ^6.5.1
 
 - Cross-platform audio playback
 - Supports MP3 format on both iOS and Android
@@ -60,7 +62,7 @@ Key features used:
 
 ### Project Structure
 
-```
+```text
 multi-timer/
   ├── .cursor/                    # Cursor IDE configuration
   │   ├── commands/general/       # Custom IDE commands
@@ -77,7 +79,8 @@ multi-timer/
   ├── ios/                        # iOS platform code
   │   └── Runner.xcodeproj/
   ├── lib/
-  │   ├── main.dart              # App entry point, TimerScreen, session definitions
+  │   ├── main.dart              # App entry point + MultiTimerApp only
+  │   ├── timer_screen.dart      # TimerScreen (StatefulWidget) + _TimerScreenState
   │   ├── constants.dart         # kGongDurationMs, kGongAudioFile
   │   ├── session_data.dart      # SessionData model
   │   ├── timer_schedule.dart    # Pure timing calculation
@@ -156,7 +159,10 @@ flutter:
 
 ### CLI vs Xcode GUI builds
 
-`flutter build ios` and `flutter run` invoke `xcodebuild` with their own build settings that override project defaults. Xcode's Product → Build uses project settings directly. This means issues like sandboxing (see Known Limitations) only surface when building via Xcode GUI, not via Flutter CLI.
+`flutter build ios` and `flutter run` invoke `xcodebuild` with their own
+build settings that override project defaults. Xcode's Product → Build uses
+project settings directly. This means issues like sandboxing (see Known
+Limitations) only surface when building via Xcode GUI, not via Flutter CLI.
 
 ## Testing Strategy
 
@@ -171,15 +177,15 @@ flutter:
 
 Three-layer strategy accepted (ADR-002):
 
-- **Unit tests** — `test/unit/timer_schedule_test.dart` — in
-  progress. `TimerSchedule` and event classes extracted and tested.
+- **Unit tests** — `test/unit/timer_schedule_test.dart` — complete.
   Run with: `flutter test test/unit/`
+- **Widget tests** — `test/widget/timer_screen_test.dart` — started.
+  `MockAudioPlayer` (mocktail), `fake_async` in place. Initial render
+  test green. Full `_runExerciseSequence()` tests are Step 4.
+  Run with: `flutter test test/widget/`
 - **Integration test** — `test/objective_c_test.dart` — checks
   whether `objective_c` package pin can be removed. Run with:
   `flutter test test/objective_c_test.dart` (makes network call)
-- **Widget tests** — `test/widget/` — UI state transitions;
-  requires injectable `AudioPlayer`; tools: `fake_async`,
-  `mocktail`. Not yet started.
 - **Manual protocol** — screen lock on real devices before each
   release; see `docs/architecture/concepts/test-strategy.md`
 
@@ -203,11 +209,19 @@ Three-layer strategy accepted (ADR-002):
 
 ### Known Limitations
 
-1. **Timer Reliability**: App must remain in foreground with screen unlocked (documented in ADR-001)
-2. **Audio Format**: MP3 works for current implementation; iOS notifications would require AIFF conversion
+1. **Timer Reliability**: App must remain in foreground with screen unlocked
+   (documented in ADR-001)
+2. **Audio Format**: MP3 works for current implementation; iOS notifications
+   would require AIFF conversion
 3. **Single Platform Focus**: iOS only for current iteration
 4. **Network**: App fully offline; no network requirements
-5. **Xcode GUI Sandboxing**: Since Xcode 15, `ENABLE_USER_SCRIPT_SANDBOXING` defaults to `YES` for new projects. CocoaPods script phases don't declare all inputs/outputs, causing "located outside of the allowed root paths" errors when building via Product → Build. Fix: set `ENABLE_USER_SCRIPT_SANDBOXING = NO` in Podfile `post_install` hook. Reference: [CocoaPods #11946](https://github.com/CocoaPods/CocoaPods/issues/11946)
+5. **Xcode GUI Sandboxing**: Since Xcode 15,
+   `ENABLE_USER_SCRIPT_SANDBOXING` defaults to `YES` for new projects.
+   CocoaPods script phases don't declare all inputs/outputs, causing
+   "located outside of the allowed root paths" errors when building via
+   Product → Build. Fix: set `ENABLE_USER_SCRIPT_SANDBOXING = NO` in
+   Podfile `post_install` hook. Reference:
+   [CocoaPods #11946](https://github.com/CocoaPods/CocoaPods/issues/11946)
 
 ### Future Technical Considerations
 
@@ -271,4 +285,3 @@ flutter build ios        # Build iOS release
 - Signing: Configure in Runner target settings
 - Archive: Product → Archive (for TestFlight)
 - Upload: Window → Organizer → Upload to App Store
-
