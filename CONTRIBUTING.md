@@ -24,6 +24,8 @@
 
 ## Running the App
 
+### Running and Choosing the Target Device
+
 Run on an emulator or physical device:
 
 ```bash
@@ -32,7 +34,7 @@ flutter run
 
 On Linux it is recommended to run in Chrome - this gives the fastest result.
 
-## Running on iPhone
+### Explicitly Running on iPhone
 
 To run on your iPhone (requires a free Apple Developer account):
 
@@ -58,7 +60,7 @@ To run on your iPhone (requires a free Apple Developer account):
     - Go to **General > VPN & Device Management** (or Profiles)
     - Tap your Apple ID and select **Trust**
 
-## Running on Android
+### Explicitly Running on Android
 
 To run on an Android emulator:
 
@@ -82,3 +84,9 @@ To run on an Android emulator:
     - Wait for the emulator to fully boot
     - Select your emulator from the device dropdown in the toolbar
     - Click the **Run** button (or press **Shift + F10**)
+
+## Running the Tests
+
+```shell
+flutter test
+```

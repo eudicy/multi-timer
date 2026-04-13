@@ -32,9 +32,9 @@ Pure Dart logic with no Flutter framework or hardware dependency.
 
 | Subject                     | What to verify                                                       |
 | --------------------------- | -------------------------------------------------------------------- |
-| `SessionData`               | `audioDurationMs` defaults to `0`; other fields assigned correctly   |
-| Total duration              | Sum of all `session.durationSeconds * 1000`                          |
-| Per-session remaining delay | `durationSeconds * 1000 − kGongDurationMs − audioDurationMs`         |
+| `SessionData`               | `durationMs` and `audioFile` fields assigned correctly               |
+| Total duration              | Sum of all `session.durationMs`                                      |
+| Per-session pre-gong delay  | `durationMs − kGongDurationMs`                                       |
 | Playback schedule           | Each event has the correct `audioFile` and `offsetMs` from t=0       |
 | Progress                    | `elapsed / totalDuration` clamped to `[0.0, 1.0]`                   |
 
@@ -100,7 +100,7 @@ void main() {
   group('TimerSchedule', () {
     test('totalDurationMs sums all sessions', () {
       final schedule = TimerSchedule([
-        SessionData(300_000, 'a.mp3', 8000),
+        SessionData(300_000, 'a.mp3'),
         SessionData(60_000),
       ]);
       expect(schedule.totalDurationMs, equals(360 * 1000));
@@ -116,7 +116,7 @@ void main() {
 
     test('guided audio fires before the gong in the same session', () {
       final schedule = TimerSchedule([
-        SessionData(300_000, 'breathing.mp3', 8000),
+        SessionData(300_000, 'breathing.mp3'),
       ]);
       final events = schedule.buildEvents();
       expect(events[0].audioFile, equals('breathing.mp3'));
@@ -160,7 +160,7 @@ test('gong events fire at session boundaries', () {
 ```
 
 Note: in the current in-app implementation the gong *starts*
-`kGongDurationMs` (6 080 ms) before the boundary so it *finishes*
+`kGongDurationMs` (5 670 ms) before the boundary so it *finishes*
 at the boundary. In the notification-based approach the OS fires
 the notification at the boundary and plays the gong from that
 point. `buildEvents()` will need to be updated to reflect this
@@ -206,74 +206,80 @@ Flutter UI state — which screen is rendered under which conditions.
 injectable so tests can supply a fake:
 
 ```dart
-class _TimerScreenState extends State<TimerScreen> {
-  late final AudioPlayer _player;
-
-  @override
-  void initState() {
-    super.initState();
-    _player = widget.audioPlayer ?? AudioPlayer();
-  }
+class TimerScreen extends StatefulWidget {
+  final AudioPlayer _player;
+  const TimerScreen(this._player, {super.key});
+  ...
 }
 
-class TimerScreen extends StatefulWidget {
-  final AudioPlayer? audioPlayer; // nullable; real app passes null
-  const TimerScreen({super.key, this.audioPlayer});
+class _TimerScreenState extends State<TimerScreen> {
+  AudioPlayer get _player => widget._player;
   ...
 }
 ```
 
+**Design decision**: non-nullable over nullable with `?? AudioPlayer()` fallback.
+Rationale: makes the dependency visible and mandatory at every call site;
+eliminates the hidden fallback path and the need for null checks.
+
 ### Faking time with `fake_async`
 
-`_startTimer()` uses `Timer.periodic` and `Future.delayed`. In a widget test
-these would make the test hang waiting for real time. `fake_async` replaces
-the clock so you can advance time instantly:
+`_runExerciseSequence()` uses `Timer.periodic` and `Future.delayed`. In a
+widget test these would make the test hang waiting for real time. `fake_async`
+replaces the clock so you can advance time instantly.
+
+The audio player (`_play`) is fire-and-forget — it stops and starts the player
+but does not await completion. Widget tests therefore only need `stop()` and
+`play()` stubbed to return `Future.value()`; no stream or `StreamController`
+is required.
 
 ```dart
 // test/widget/timer_screen_test.dart
-import 'package:fake_async/fake_async.dart';
+import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:multi_timer/timer_screen.dart';
 
 class MockAudioPlayer extends Mock implements AudioPlayer {}
 
 void main() {
-  testWidgets('shows Start button initially', (tester) async {
-    await tester.pumpWidget(
-      MaterialApp(home: TimerScreen(audioPlayer: MockAudioPlayer())),
-    );
-    expect(find.text('Start'), findsOneWidget);
-    expect(find.byType(AppBar), findsOneWidget);
+  // Required so mocktail can match any AssetSource passed to play()
+  setUpAll(() => registerFallbackValue(AssetSource('')));
+
+  late MockAudioPlayer player;
+
+  setUp(() {
+    player = MockAudioPlayer();
+    when(() => player.stop()).thenAnswer((_) async {});
+    when(() => player.play(any())).thenAnswer((_) async {});
+    when(() => player.dispose()).thenAnswer((_) async {});
   });
 
-  testWidgets('switches to counting screen after Start', (tester) async {
-    fakeAsync((async) {
-      final mock = MockAudioPlayer();
-      // Make play() complete immediately and fire onPlayerComplete
-      when(() => mock.play(any())).thenAnswer((_) async {
-        mock.onPlayerComplete.add(null);
-      });
-      when(() => mock.stop()).thenAnswer((_) async {});
+  testWidgets('shows AppBar and Start button initially', (tester) async {
+    await tester.pumpWidget(MaterialApp(home: TimerScreen(player)));
+    expect(find.byType(AppBar), findsOneWidget);
+    expect(find.text('Start'), findsOneWidget);
+  });
 
-      tester.pumpWidget(MaterialApp(home: TimerScreen(audioPlayer: mock)));
-      tester.tap(find.text('Start'));
-      async.elapse(Duration.zero); // flush microtasks
-      tester.pump();
+  testWidgets('switches to black counting screen after tapping Start',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(home: TimerScreen(player)));
+    await tester.tap(find.text('Start'));
+    await tester.pump(); // let setState(_isCounting = true) run
 
-      expect(find.byType(AppBar), findsNothing);
-      expect(
-        tester.widget<Scaffold>(find.byType(Scaffold)).backgroundColor,
-        equals(Colors.black),
-      );
-    });
+    expect(find.byType(AppBar), findsNothing);
+    expect(
+      tester.widget<Scaffold>(find.byType(Scaffold)).backgroundColor,
+      equals(Colors.black),
+    );
   });
 }
 ```
 
-**Important:** `fake_async` controls `Timer` and `Future.delayed`, but it does
-**not** control `audioplayers` streams. This is why the mock must manually fire
-`onPlayerComplete` — otherwise `_playAudioAndWait()` will never resolve and the
-test will hang even with `fakeAsync`.
+To test completion, advance fake time past the full sequence duration using
+`tester.pump(duration)` — each call advances `Timer.periodic` and
+`Future.delayed` by the given amount.
 
 ### Widget test tools and dependencies
 
@@ -283,8 +289,8 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   test: ^1.29.0           # already present
-  fake_async: ^1.3.2      # ADD: controls Timer / Future.delayed in tests
-  mocktail: ^1.0.4        # ADD: mock AudioPlayer without code generation
+  fake_async: ^1.3.3      # ADD: controls Timer / Future.delayed in tests
+  mocktail: ^1.0.5        # ADD: mock AudioPlayer without code generation
 ```
 
 Use **`mocktail`** rather than `mockito`. `mocktail` does not require the
@@ -361,7 +367,7 @@ flutter run --release
 | 6       | 120 s    | t ≈ 1020 s             | t ≈ 1131 s              |
 | 7       | 60 s     | t ≈ 1140 s             | t ≈ 1194 s              |
 
-*(The gong fires ~6 s before the session boundary because its 6080 ms duration
+*(The gong fires ~5.7 s before the session boundary because its 5670 ms duration
 is subtracted from the delay — the gong finishes exactly at the boundary.)*
 
 **Checklist:**

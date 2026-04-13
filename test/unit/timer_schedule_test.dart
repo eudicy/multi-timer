@@ -36,7 +36,7 @@ void expectPlaybackRequestedEventForGongAudio(
   // file and the duration, but not the implementation details that these properties are
   // as a constants in the code. So we use the "magic values" here.
 
-  final gongAudioDurationMs = 6080;
+  final gongAudioDurationMs = 5670;
   final gongAudioFile = 'gong.mp3';
   expect(lastEvent.offsetMs, sessionDurationMs - gongAudioDurationMs);
   expect(lastEvent.audioFile, gongAudioFile);
@@ -60,10 +60,7 @@ void main() {
       'When a single session, then ExerciseFinishedEvent offset is session duration',
       () {
         final sessionDurationMs = 1_000_000;
-        final arbitraryDurationMs = 123;
-        final schedule = TimerSchedule([
-          SessionData(sessionDurationMs, null, arbitraryDurationMs),
-        ]);
+        final schedule = TimerSchedule([SessionData(sessionDurationMs, null)]);
 
         final actualEvents = schedule.buildEvents();
 
@@ -79,11 +76,10 @@ void main() {
       'When three sessions, then ExerciseFinishedEvent offset is sum of session durations',
       () {
         final sessionDurationMs = 1000;
-        final arbitraryDurationMs = 123;
         final schedule = TimerSchedule([
-          SessionData(sessionDurationMs, null, arbitraryDurationMs),
-          SessionData(sessionDurationMs, null, arbitraryDurationMs),
-          SessionData(sessionDurationMs, null, arbitraryDurationMs),
+          SessionData(sessionDurationMs, null),
+          SessionData(sessionDurationMs, null),
+          SessionData(sessionDurationMs, null),
         ]);
 
         final actualEvents = schedule.buildEvents();
@@ -110,13 +106,8 @@ void main() {
     test('When a single session, then return two PlaybackRequestedEvents', () {
       final sessionDurationMs = 15_000;
       final sessionAudioFile = 'session_audio.mp3';
-      final sessionAudioDurationMs = 3000;
       final schedule = TimerSchedule([
-        SessionData(
-          sessionDurationMs,
-          sessionAudioFile,
-          sessionAudioDurationMs,
-        ),
+        SessionData(sessionDurationMs, sessionAudioFile),
       ]);
 
       final actualEvents = schedule.buildEvents();
@@ -141,13 +132,8 @@ void main() {
       () {
         final sessionDurationMs = 15_000;
         final sessionAudioFile = null;
-        final sessionAudioDurationMs = 0;
         final schedule = TimerSchedule([
-          SessionData(
-            sessionDurationMs,
-            sessionAudioFile,
-            sessionAudioDurationMs,
-          ),
+          SessionData(sessionDurationMs, sessionAudioFile),
         ]);
 
         final actualEvents = schedule.buildEvents();
@@ -166,18 +152,9 @@ void main() {
     test('When two sessions, then second session audio has correct offset', () {
       final sessionDurationMs = 15_000;
       final sessionAudioFile = 'session_audio.mp3';
-      final sessionAudioDurationMs = 3000;
       final schedule = TimerSchedule([
-        SessionData(
-          sessionDurationMs,
-          sessionAudioFile,
-          sessionAudioDurationMs,
-        ),
-        SessionData(
-          sessionDurationMs,
-          sessionAudioFile,
-          sessionAudioDurationMs,
-        ),
+        SessionData(sessionDurationMs, sessionAudioFile),
+        SessionData(sessionDurationMs, sessionAudioFile),
       ]);
 
       final actualEvents = schedule.buildEvents();
@@ -196,18 +173,9 @@ void main() {
     test('When two sessions, then final gong has correct offset', () {
       final sessionDurationMs = 15_000;
       final sessionAudioFile = 'session_audio.mp3';
-      final sessionAudioDurationMs = 3000;
       final schedule = TimerSchedule([
-        SessionData(
-          sessionDurationMs,
-          sessionAudioFile,
-          sessionAudioDurationMs,
-        ),
-        SessionData(
-          sessionDurationMs,
-          sessionAudioFile,
-          sessionAudioDurationMs,
-        ),
+        SessionData(sessionDurationMs, sessionAudioFile),
+        SessionData(sessionDurationMs, sessionAudioFile),
       ]);
 
       final actualEvents = schedule.buildEvents();
