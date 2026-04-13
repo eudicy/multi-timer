@@ -1,2 +1,2 @@
-const int kGongDurationMs = 6080;
+const int kGongDurationMs = 5670;
 const String kGongAudioFile = 'gong.mp3';

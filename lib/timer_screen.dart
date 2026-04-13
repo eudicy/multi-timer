@@ -21,22 +21,22 @@ class _TimerScreenState extends State<TimerScreen> {
 
   late final List<SessionData> _sessions = kDebugMode
       ? [
-          SessionData(16_000, 'release/ganzkoerperatmung.mp3', 8000),
-          SessionData(16_000, 'release/atem-halten.mp3', 8700),
-          SessionData(16_000, 'release/ganzkoerperatmung.mp3', 8000),
-          SessionData(16_000, 'release/atem-halten.mp3', 8700),
-          SessionData(16_000, 'release/ganzkoerperatmung.mp3', 8000),
-          SessionData(17_000, 'release/wellenatmen.mp3', 9000),
-          SessionData(13_000, 'release/nachspueren.mp3', 5600),
+          SessionData(20_000, 'release/ganzkoerperatmung.mp3'),
+          SessionData(20_000, 'release/atem-halten.mp3'),
+          SessionData(20_000, 'release/ganzkoerperatmung.mp3'),
+          SessionData(20_000, 'release/atem-halten.mp3'),
+          SessionData(20_000, 'release/ganzkoerperatmung.mp3'),
+          SessionData(20_000, 'release/wellenatmen.mp3'),
+          SessionData(20_000, 'release/nachspueren.mp3'),
         ]
       : [
-          SessionData(300_000, 'release/ganzkoerperatmung.mp3', 8000),
-          SessionData(60_000, 'release/atem-halten.mp3', 8700),
-          SessionData(300_000, 'release/ganzkoerperatmung.mp3', 8000),
-          SessionData(60_000, 'release/atem-halten.mp3', 8700),
-          SessionData(300_000, 'release/ganzkoerperatmung.mp3', 8000),
-          SessionData(120_000, 'release/wellenatmen.mp3', 9000),
-          SessionData(60_000, 'release/nachspueren.mp3', 5600),
+          SessionData(300_000, 'release/ganzkoerperatmung.mp3'),
+          SessionData(60_000, 'release/atem-halten.mp3'),
+          SessionData(300_000, 'release/ganzkoerperatmung.mp3'),
+          SessionData(60_000, 'release/atem-halten.mp3'),
+          SessionData(300_000, 'release/ganzkoerperatmung.mp3'),
+          SessionData(120_000, 'release/wellenatmen.mp3'),
+          SessionData(60_000, 'release/nachspueren.mp3'),
         ];
 
   AudioPlayer get _player => widget._player;
@@ -54,28 +54,9 @@ class _TimerScreenState extends State<TimerScreen> {
     });
   }
 
-  Future<void> _playAudioAndWait(String audioPath) async {
-    // Stop any previous playback to ensure clean state
+  Future<void> _play(String audioPath) async {
     await _player.stop();
-
-    final completer = Completer<void>();
-
-    // Set up listener BEFORE playing to avoid race condition
-    final subscription = _player.onPlayerComplete.listen((_) {
-      if (!completer.isCompleted) {
-        completer.complete();
-      }
-    });
-
-    try {
-      await _player.play(AssetSource(audioPath));
-    } catch (e) {
-      await subscription.cancel();
-      rethrow;
-    }
-
-    await completer.future;
-    await subscription.cancel();
+    await _player.play(AssetSource(audioPath));
   }
 
   Future<void> _runExerciseSequence() async {
@@ -101,21 +82,18 @@ class _TimerScreenState extends State<TimerScreen> {
       }
     });
 
-    for (int i = 0; i < _sessions.length; i++) {
-      SessionData session = _sessions[i];
-
-      int remainingDurationMs = session.durationMs - kGongDurationMs;
-
+    for (final session in _sessions) {
       if (session.audioFile != null) {
-        remainingDurationMs -= session.audioDurationMs;
-        await _playAudioAndWait(session.audioFile!);
+        await _play(session.audioFile!);
       }
 
+      int remainingDurationMs = session.durationMs - kGongDurationMs;
       if (remainingDurationMs > 0) {
         await Future.delayed(Duration(milliseconds: remainingDurationMs));
       }
 
-      await _playAudioAndWait(kGongAudioFile);
+      await _play(kGongAudioFile);
+      await Future.delayed(const Duration(milliseconds: kGongDurationMs));
     }
 
     _progressTimer?.cancel();
