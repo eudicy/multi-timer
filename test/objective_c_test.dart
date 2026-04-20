@@ -4,7 +4,7 @@ import 'package:test/test.dart';
 void main() {
   // Reminder to upgrade objective_c dependency.
   //
-  // In Feb. 2026 using the latest objective_c library version 9.3.0 resulted
+  // In Apr. 2026 using the latest objective_c library version 9.3.0 resulted
   // in a warning when validating the iOS app package. As a workaround, the
   // package was downgraded and pinned to version 9.1.0.
   //

@@ -1,6 +1,7 @@
 WAS WURDE GEÄNDERT?
 
-Die Lautstärke der Sprach-Anweisungen wurde erhöht.
+• Updates für Teile der App wurden eingespielt.
+• Das Software Design wurde verbessert, damit die App einfacher gewartet werden kann.
 
 WAS KANN GETESTET WERDEN?
 
