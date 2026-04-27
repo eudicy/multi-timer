@@ -206,26 +206,24 @@ Separate timer for UI updates:
   session state
 - **Benefit**: Smooth, predictable progress bar advancement
 
-## TimerEvent Model (New — Step 0)
+## TimerEvent Model
 
-A new event hierarchy has been introduced to decouple timing logic
-from UI and audio execution:
+All event types consolidated in `lib/timer_events.dart`:
 
 ```text
-TimerEvent (abstract, lib/timer_event.dart)
-  ├── ExerciseFinishedEvent (lib/exercise_finished_event.dart)
+sealed class TimerEvent (lib/timer_events.dart)
+  ├── ExerciseFinishedEvent
   │     offsetMs: total duration of all sessions
-  └── PlaybackRequestedEvent (lib/playback_requested_event.dart)
+  └── PlaybackRequestedEvent
         offsetMs: when to play (ms from exercise start)
         audioFile: path to audio asset
-
-lib/session_data.dart  — SessionData (extracted from main.dart)
-lib/constants.dart     — kGongDurationMs, kGongAudioFile (extracted from main.dart)
 ```
 
+`sealed` enables Dart 3 exhaustiveness checking on switch dispatchers.
+All subtypes must live in same library — enforced by consolidation.
+
 `TimerSchedule(List<SessionData>).buildEvents()` returns
-`List<TimerEvent>` — a pure calculation with no side effects.
-Testable without Flutter, audio, or timers.
+`List<TimerEvent>` — pure calculation, no side effects, fully unit-tested.
 
 **Internal helpers** (all stateless, return values):
 
@@ -237,8 +235,27 @@ Testable without Flutter, audio, or timers.
 **Design decision**: optional events return `List<T>` (not `T?`) so
 the call site can use `addAll` — cleaner than a null check + `add`.
 
-**Equatable** is used for value equality on all event classes.
-Pattern-match on event type using Dart 3 `switch` expressions.
+**Equatable** used for value equality. Dispatch with `event is SubType`
+(type promotion) not explicit cast. `ExerciseFinishedEvent` triggers
+cleanup inline — no post-loop code needed.
+
+## Event-Driven Execution Pattern
+
+`_runExerciseSequence()` iterates events with delta-based delays:
+
+```dart
+var previousOffsetMs = 0;
+for (final event in TimerSchedule(_sessions).buildEvents()) {
+  final delayMs = event.offsetMs - previousOffsetMs;
+  await Future.delayed(Duration(milliseconds: delayMs));
+  if (event is PlaybackRequestedEvent) await _play(event.audioFile);
+  if (event is ExerciseFinishedEvent) { /* cleanup + setState */ }
+  previousOffsetMs = event.offsetMs;  // ← must update every iteration
+}
+```
+
+**Critical**: `previousOffsetMs` must update every iteration. Forgetting
+causes each delay to use absolute offset → sequence takes ~8× too long.
 
 ## Widget Test Patterns
 

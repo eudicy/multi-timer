@@ -10,32 +10,32 @@ automatic display sleep enabled.
 
 ## Current Focus
 
-### Step 5: Wire `_runExerciseSequence()` to `TimerSchedule.buildEvents()` ⏳ Next
+### Step 6: Foundation Setup ⏳ Next
 
-Replace inline `Future.delayed` timing loop with iteration over
-`TimerSchedule(sessions).buildEvents()`. Still uses `Future.delayed` —
-notifications come later (Step 6+). Widget tests from Step 4 are the
-regression harness.
+Add `flutter_local_notifications` + `timezone` to `pubspec.yaml`, configure
+iOS `Info.plist` and Android `AndroidManifest.xml`, initialize plugin in
+`main()`. No behavior change — additive only.
 
-**Step 4 completed (commit 652a03d):**
+Expected commit: `build(deps): add flutter_local_notifications for background timing`
 
-- ✅ `setUp` fixture with `late MockAudioPlayer player` — fresh instance per test
-- ✅ `expectPlayerReceivedInOrder(List<String>)` local helper — closes over
-  `player`, hides `verify`/`captureAny` machinery
-- ✅ Test: gong plays after first session delay — pumps `kSessionDurationMs -
-  kGongDurationMs` (14,330ms), captures both plays in order
-- ✅ Test: returns to idle after full sequence — pumps `kExerciseDurationMs`
-  (140,000ms), asserts `find.text('Start')` visible
-- ✅ Deleted redundant "plays instruction audio" test — timing covered by
-  `timer_schedule_test.dart` (`offsetMs: 0` assertion)
-- ✅ Constants `kSessionDurationMs = 20_000`, `kExerciseDurationMs = 140_000`
-  extracted; `gongPlaybackStartMs` derived from `kSessionDurationMs - kGongDurationMs`
+**Step 5 completed (commits b546a64, 575807f):**
 
-**Key insight from Step 4:** `pump(duration)` in fake-async processes both the
-tap effects (t=0) and all timers up to `duration` in one call. A separate
-zero-duration `pump()` before a timed pump is redundant.
+- ✅ `_runExerciseSequence()` iterates `TimerSchedule(_sessions).buildEvents()`
+  — delta-based delays: `delayMs = event.offsetMs - previousOffsetMs`
+- ✅ `PlaybackRequestedEvent` dispatched via `event is PlaybackRequestedEvent`
+  (type promotion, no cast)
+- ✅ `ExerciseFinishedEvent` triggers cleanup inline (cancel progress timer,
+  setState idle) — no post-loop cleanup needed
+- ✅ `TimerEvent` hierarchy consolidated: `timer_event.dart`,
+  `playback_requested_event.dart`, `exercise_finished_event.dart` → single
+  `lib/timer_events.dart` with `sealed class TimerEvent`
+- ✅ Dart 3 exhaustiveness checking now active on all switch dispatchers
 
-### Up next after Step 5: Notification-based background timing
+**Key bug caught in Step 5:** `previousOffsetMs` not updated in loop →
+each delay used absolute offset not delta → sequence took ~8× longer than
+140s. Fix: `previousOffsetMs = event.offsetMs` at end of each iteration.
+
+### Up next after Step 6: Notification-based background timing
 
 Replacing `Future.delayed()` timer approach with OS-native scheduled
 notifications to maintain accurate timing when screen locks.
@@ -127,7 +127,8 @@ functionality:
 - **Steps 1-2**: ✅ Complete — TimerSchedule extraction and cleanup
 - **Step 3**: ✅ Complete — AudioPlayer injectable, widget test infrastructure
 - **Step 4**: ✅ Complete — Widget tests for `_runExerciseSequence()` (commit 652a03d)
-- **Step 5**: ⏳ Wire `_runExerciseSequence()` to `TimerSchedule`
+- **Step 5**: ✅ Complete — Event-driven loop + sealed TimerEvent (commits b546a64, 575807f)
+- **Step 6**: ⏳ Foundation Setup — add flutter_local_notifications
 - **Steps 6-12**: Additive notification infrastructure and validation
   (don't break existing functionality)
 - **Step 13**: Transformation (replace timer with notifications)
@@ -178,24 +179,17 @@ precise timing.
 
 ## Next Immediate Steps
 
-**Step 5 — Wire `_runExerciseSequence()` to `TimerSchedule.buildEvents()`:**
-
-Replace the inline session loop in `_runExerciseSequence()` with iteration
-over `TimerSchedule(sessions).buildEvents()`. Still uses `Future.delayed()`
-— no notification changes yet. Widget tests in `test/widget/timer_screen_test.dart`
-are the regression harness: run `flutter test test/widget/` after each change.
-
 **Step 6 — Foundation Setup:**
 
 Add notification infrastructure without changing app behavior:
 
-- Add `flutter_local_notifications` and `timezone` to pubspec.yaml
-- Configure iOS (Info.plist permissions)
-- Configure Android (AndroidManifest.xml)
+- Add `flutter_local_notifications` and `timezone` to `pubspec.yaml`
+- Configure iOS (`Info.plist` — notification permissions)
+- Configure Android (`AndroidManifest.xml`)
 - Initialize notification plugin in `main()`
 
-Expected commit:
-`build(deps): add flutter_local_notifications for background timing`
+Run `flutter test` after to confirm no regressions.
+Expected commit: `build(deps): add flutter_local_notifications for background timing`
 
 ## Blockers
 

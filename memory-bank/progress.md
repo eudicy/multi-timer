@@ -64,7 +64,8 @@
     removed `_playAudioAndWait` and `audioDurationMs`; `kGongDurationMs`
     corrected to 5670ms; unit tests updated; debug run verified
 4. ✅ Write widget tests for `_runExerciseSequence()` — complete (commit 652a03d)
-5. ⏳ Wire `_runExerciseSequence()` to `TimerSchedule.buildEvents()`
+5. ✅ Wire `_runExerciseSequence()` to `TimerSchedule.buildEvents()` — complete
+   (commits b546a64, 575807f); TimerEvent sealed, hierarchy consolidated
 6. ⏳ Foundation Setup — add `flutter_local_notifications`, `timezone`,
    platform config
 7. ⏳ Permission Flow — request notification permissions
@@ -78,7 +79,7 @@
 15. ⏳ Cleanup & Edge Cases — cancellation and notification management
 16. ⏳ End-to-End Validation — real-world testing
 
-**Status**: Steps 1-4 complete; Step 5 next (see activeContext.md)
+**Status**: Steps 1-5 complete; Step 6 next (see activeContext.md)
 
 **Next TestFlight Release**: Version 1.1.0 with screen lock fix
 
@@ -159,8 +160,8 @@ testers invited.
 **Last Completed**: Audio volume increased (v1.0.0+2); deployed to
 TestFlight Jan 17, 2026
 
-**Next Immediate Task**: Step 5 — wire `_runExerciseSequence()` to
-`TimerSchedule.buildEvents()` (see activeContext.md)
+**Next Immediate Task**: Step 6 — Foundation Setup: add
+`flutter_local_notifications` + `timezone`, configure platforms (see activeContext.md)
 
 **Version Tracking**:
 

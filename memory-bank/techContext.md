@@ -84,9 +84,7 @@ multi-timer/
   │   ├── constants.dart         # kGongDurationMs, kGongAudioFile
   │   ├── session_data.dart      # SessionData model
   │   ├── timer_schedule.dart    # Pure timing calculation
-  │   ├── timer_event.dart       # Abstract base event
-  │   ├── exercise_finished_event.dart
-  │   └── playback_requested_event.dart
+  │   └── timer_events.dart      # sealed TimerEvent + PlaybackRequestedEvent + ExerciseFinishedEvent
   ├── pubspec.yaml               # Dependencies and assets
   └── README.md
 ```
