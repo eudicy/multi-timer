@@ -1,6 +1,7 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
-import 'package:multi_timer/constants.dart';
+import 'package:multi_timer/timer_events.dart';
+import 'package:multi_timer/timer_schedule.dart';
 import 'package:multi_timer/session_data.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
@@ -82,25 +83,25 @@ class _TimerScreenState extends State<TimerScreen> {
       }
     });
 
-    for (final session in _sessions) {
-      if (session.audioFile != null) {
-        await _play(session.audioFile!);
+    var previousOffsetMs = 0;
+    for (final event in TimerSchedule(_sessions).buildEvents()) {
+      final delayBeforeActingMs = event.offsetMs - previousOffsetMs;
+      await Future.delayed(Duration(milliseconds: delayBeforeActingMs));
+
+      if (event is PlaybackRequestedEvent) {
+        await _play(event.audioFile);
       }
 
-      int remainingDurationMs = session.durationMs - kGongDurationMs;
-      if (remainingDurationMs > 0) {
-        await Future.delayed(Duration(milliseconds: remainingDurationMs));
+      if (event is ExerciseFinishedEvent) {
+        _progressTimer?.cancel();
+        setState(() {
+          _isCounting = false;
+          _progress = 0.0;
+        });
       }
 
-      await _play(kGongAudioFile);
-      await Future.delayed(const Duration(milliseconds: kGongDurationMs));
+      previousOffsetMs = event.offsetMs;
     }
-
-    _progressTimer?.cancel();
-    setState(() {
-      _isCounting = false;
-      _progress = 0.0;
-    });
   }
 
   @override
