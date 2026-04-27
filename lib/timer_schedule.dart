@@ -1,8 +1,6 @@
 import 'package:multi_timer/constants.dart';
-import 'package:multi_timer/playback_requested_event.dart';
 import 'package:multi_timer/session_data.dart';
-import 'package:multi_timer/timer_event.dart';
-import 'exercise_finished_event.dart';
+import 'package:multi_timer/timer_events.dart';
 
 class TimerSchedule {
   final List<SessionData> sessions;

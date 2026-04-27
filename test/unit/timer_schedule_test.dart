@@ -1,9 +1,7 @@
-import 'package:multi_timer/session_data.dart';
-import 'package:multi_timer/timer_event.dart';
 import 'package:test/test.dart';
+import 'package:multi_timer/session_data.dart';
+import 'package:multi_timer/timer_events.dart';
 import 'package:multi_timer/timer_schedule.dart';
-import 'package:multi_timer/exercise_finished_event.dart';
-import 'package:multi_timer/playback_requested_event.dart';
 
 void expectSingleExerciseFinishedEventWithOffset(
   List<TimerEvent> actualEvents,
