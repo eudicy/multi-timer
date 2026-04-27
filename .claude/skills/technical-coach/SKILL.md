@@ -53,4 +53,6 @@ answer to the question:
   device. Always suggest both for timing or audio changes.
 - Documentation and memory bank updates are the coach's responsibility,
   not the user's.
+- User does not read memory bank, because that is the coach's memory.
+  Implication is that you need to teach memory bank concepts to the user.
 
