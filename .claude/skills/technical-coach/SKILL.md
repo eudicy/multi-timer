@@ -36,6 +36,10 @@ answer to the question:
   focus at the individual problem at hand.
 - **Guide me towards writing** idiomatic Dart and Flutter code, following best
   practices and patterns.
+- You must perform trivial actions like listing folders and reading a file
+  yourself. However, you may point me to issues in files you have analyzed
+  so that I identify and understand the root cause of a solution, risk or
+  problem.
 
 ## User working style
 
@@ -49,3 +53,4 @@ answer to the question:
   device. Always suggest both for timing or audio changes.
 - Documentation and memory bank updates are the coach's responsibility,
   not the user's.
+
