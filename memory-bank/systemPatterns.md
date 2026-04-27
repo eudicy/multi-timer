@@ -242,58 +242,81 @@ Pattern-match on event type using Dart 3 `switch` expressions.
 
 ## Widget Test Patterns
 
-### Stub Setup
+### Fixture Setup
 
 ```dart
+late MockAudioPlayer player;
+
 setUpAll(() {
   registerFallbackValue(AssetSource('')); // required for any() on Source params
 });
 
-// Per-test stubs:
-when(() => player.stop()).thenAnswer((_) async {});
-when(() => player.play(any())).thenAnswer((_) async {});
-when(() => player.dispose()).thenAnswer((_) async {});
+setUp(() {
+  player = MockAudioPlayer();
+  when(() => player.dispose()).thenAnswer((_) async {});
+  when(() => player.stop()).thenAnswer((_) async {});
+  when(() => player.play(any())).thenAnswer((_) async {});
+});
 ```
 
-`registerFallbackValue` must be in `setUpAll`, not inside the test body —
-`when(...any()...)` is evaluated before the test body runs.
+`setUpAll` before `setUp` by convention. `registerFallbackValue` must be in
+`setUpAll` — `when(...any()...)` is evaluated before test body runs.
+`late` gives fresh `MockAudioPlayer` per test with identical isolation to
+local declaration.
 
 ### Asserting Audio Calls
 
-`AssetSource` does not implement `==`/`hashCode`. Use `captureAny()` to
-capture the argument, then assert on `.path`:
+`AssetSource` does not implement `==`/`hashCode`. Use `captureAny()` via a
+local helper that closes over `player`:
 
 ```dart
-final captured = verify(() => player.play(captureAny())).captured;
-expect(captured.length, equals(1));
-expect(
-  captured.first,
-  isA<AssetSource>().having((a) => a.path, 'path', 'release/ganzkoerperatmung.mp3'),
-);
+void expectPlayerReceivedInOrder(List<String> audioFilePaths) {
+  final captured = verify(() => player.play(captureAny())).captured;
+  expect(captured.length, equals(audioFilePaths.length));
+  for (var i = 0; i < audioFilePaths.length; i++) {
+    expect(captured[i], isA<AssetSource>().having((a) => a.path, 'path', audioFilePaths[i]));
+  }
+}
 ```
+
+`verify` consumes interactions — call once after advancing to the last
+expected play, capturing all in order.
 
 ### Timing in Widget Tests
 
-`testWidgets` wraps tests in Flutter's fake-async. `tester.pump(duration)`
-advances both `Timer.periodic` and `Future.delayed` without wall-clock wait.
-
-#### After tap, before first delay fires
+`testWidgets` uses fake-async. `tester.pump(duration)` processes tap effects
+(t=0) AND all timers up to `duration` in one call — no separate zero-duration
+pump needed before a timed pump.
 
 ```dart
+// Tap then advance to gong (14,330ms into first session):
 await tester.tap(find.text('Start'));
-await tester.pump(); // zero-duration: runs sync setState + instant _play calls
-// sequence is now suspended at Future.delayed(14330ms)
+await tester.pump(const Duration(milliseconds: gongPlaybackStartMs));
+// Both instruction audio (t=0) and gong (t=14330ms) captured here.
 ```
 
-#### Draining pending timers at end of test (mandatory)
+#### Timing constants (debug mode)
 
 ```dart
-await tester.pump(const Duration(seconds: 140)); // 7 sessions × 20s
-await tester.pump(); // process final setState(_isCounting = false)
+const kSessionDurationMs = 20_000;   // first session debug duration
+const kExerciseDurationMs = 140_000; // full 7-session sequence
+// gong fires at:
+const gongPlaybackStartMs = kSessionDurationMs - kGongDurationMs; // 14_330
 ```
 
-Failing to drain leaves pending timers → test fails with
-`'!timersPending'` assertion.
+#### Draining pending timers (mandatory)
+
+```dart
+await tester.pump(const Duration(milliseconds: kExerciseDurationMs));
+```
+
+Failing to drain → `'!timersPending'` assertion failure.
+
+#### Test redundancy rule
+
+Widget tests verify wiring (correct audio file, correct state). Timing
+correctness (offsetMs values) belongs in `timer_schedule_test.dart` unit
+tests — do not duplicate in widget tests.
 
 ## Component Relationships
 

@@ -10,28 +10,32 @@ automatic display sleep enabled.
 
 ## Current Focus
 
-### Widget Tests for `_runExerciseSequence()` 🚧 In Progress (Step 4)
+### Step 5: Wire `_runExerciseSequence()` to `TimerSchedule.buildEvents()` ⏳ Next
 
-First widget test written, committed, and green. Remaining checkpoint
-tests still pending.
+Replace inline `Future.delayed` timing loop with iteration over
+`TimerSchedule(sessions).buildEvents()`. Still uses `Future.delayed` —
+notifications come later (Step 6+). Widget tests from Step 4 are the
+regression harness.
 
-**Completed this session:**
+**Step 4 completed (commit 652a03d):**
 
-- ✅ Deleted redundant smoke test (`'TimerScreen is rendered'`) — the new
-  test implies it
-- ✅ `setUpAll` with `registerFallbackValue(AssetSource(''))` — required
-  before any `when(...any()...)` on `Source` parameters
-- ✅ First test: verifies first instruction audio plays on Start tap
-  - Uses `captureAny()` + `isA<AssetSource>().having(...)` to assert path
-  - Drains pending timers with `tester.pump(Duration(seconds: 140))` +
-    `tester.pump()` at end of test
+- ✅ `setUp` fixture with `late MockAudioPlayer player` — fresh instance per test
+- ✅ `expectPlayerReceivedInOrder(List<String>)` local helper — closes over
+  `player`, hides `verify`/`captureAny` machinery
+- ✅ Test: gong plays after first session delay — pumps `kSessionDurationMs -
+  kGongDurationMs` (14,330ms), captures both plays in order
+- ✅ Test: returns to idle after full sequence — pumps `kExerciseDurationMs`
+  (140,000ms), asserts `find.text('Start')` visible
+- ✅ Deleted redundant "plays instruction audio" test — timing covered by
+  `timer_schedule_test.dart` (`offsetMs: 0` assertion)
+- ✅ Constants `kSessionDurationMs = 20_000`, `kExerciseDurationMs = 140_000`
+  extracted; `gongPlaybackStartMs` derived from `kSessionDurationMs - kGongDurationMs`
 
-**Remaining scenarios for Step 4:**
+**Key insight from Step 4:** `pump(duration)` in fake-async processes both the
+tap effects (t=0) and all timers up to `duration` in one call. A separate
+zero-duration `pump()` before a timed pump is redundant.
 
-- After first session delay: gong played (2 total play calls)
-- After full sequence: returns to idle state
-
-### Up next after Step 4: Notification-based background timing
+### Up next after Step 5: Notification-based background timing
 
 Replacing `Future.delayed()` timer approach with OS-native scheduled
 notifications to maintain accurate timing when screen locks.
@@ -122,7 +126,8 @@ functionality:
   committable steps
 - **Steps 1-2**: ✅ Complete — TimerSchedule extraction and cleanup
 - **Step 3**: ✅ Complete — AudioPlayer injectable, widget test infrastructure
-- **Steps 4-5**: Widget tests for `_runExerciseSequence()` and wiring to `TimerSchedule`
+- **Step 4**: ✅ Complete — Widget tests for `_runExerciseSequence()` (commit 652a03d)
+- **Step 5**: ⏳ Wire `_runExerciseSequence()` to `TimerSchedule`
 - **Steps 6-12**: Additive notification infrastructure and validation
   (don't break existing functionality)
 - **Step 13**: Transformation (replace timer with notifications)
@@ -173,41 +178,12 @@ precise timing.
 
 ## Next Immediate Steps
 
-**Step 4 — Complete remaining widget tests for `_runExerciseSequence()`:**
+**Step 5 — Wire `_runExerciseSequence()` to `TimerSchedule.buildEvents()`:**
 
-Infrastructure established. Stub pattern and timer-draining pattern are
-proven. Two more scenarios remain:
-
-### Scenario: gong plays after first session delay
-
-```dart
-await tester.tap(find.text('Start'));
-await tester.pump();                                  // instruction plays
-await tester.pump(const Duration(milliseconds: 14330)); // gong plays
-// verify: player.play called twice
-// captured[0].path == 'release/ganzkoerperatmung.mp3'
-// captured[1].path == 'gong.mp3'
-// drain: pump(Duration(seconds: 140 - 14)) + pump()
-```
-
-### Scenario: returns to idle after full sequence
-
-```dart
-await tester.tap(find.text('Start'));
-await tester.pump();
-await tester.pump(const Duration(seconds: 140));
-await tester.pump(); // process final setState
-expect(find.text('Start'), findsOneWidget);
-expect(find.byType(AppBar), findsOneWidget);
-```
-
-`kGongAudioFile` path is `'gong.mp3'` (see `lib/constants.dart`).
-
-**Step 5 — Wire `_runExerciseSequence()` to `TimerSchedule`:**
-
-Replace inline timing loop with iteration over
-`TimerSchedule(sessions).buildEvents()`. Still uses `Future.delayed()`.
-Widget tests from Step 4 serve as regression harness.
+Replace the inline session loop in `_runExerciseSequence()` with iteration
+over `TimerSchedule(sessions).buildEvents()`. Still uses `Future.delayed()`
+— no notification changes yet. Widget tests in `test/widget/timer_screen_test.dart`
+are the regression harness: run `flutter test test/widget/` after each change.
 
 **Step 6 — Foundation Setup:**
 

@@ -63,8 +63,7 @@
 3b. ✅ Simplify audio playback — `_play` helper (fire-and-forget),
     removed `_playAudioAndWait` and `audioDurationMs`; `kGongDurationMs`
     corrected to 5670ms; unit tests updated; debug run verified
-4. 🚧 Write widget tests for `_runExerciseSequence()` — first test green
-   (instruction audio on Start tap); gong + idle-return scenarios pending
+4. ✅ Write widget tests for `_runExerciseSequence()` — complete (commit 652a03d)
 5. ⏳ Wire `_runExerciseSequence()` to `TimerSchedule.buildEvents()`
 6. ⏳ Foundation Setup — add `flutter_local_notifications`, `timezone`,
    platform config
@@ -79,7 +78,7 @@
 15. ⏳ Cleanup & Edge Cases — cancellation and notification management
 16. ⏳ End-to-End Validation — real-world testing
 
-**Status**: Steps 1-3 complete; Step 4 in progress (see activeContext.md)
+**Status**: Steps 1-4 complete; Step 5 next (see activeContext.md)
 
 **Next TestFlight Release**: Version 1.1.0 with screen lock fix
 
@@ -91,9 +90,11 @@
 
 - ✅ Unit tests — `test/unit/timer_schedule_test.dart` complete for
   `TimerSchedule`. All green.
-- 🚧 Widget tests — `test/widget/timer_screen_test.dart`. First test green:
-  verifies first instruction audio plays on Start tap (`captureAny()` +
-  `isA<AssetSource>().having(...)`). Gong + idle-return scenarios pending.
+- ✅ Widget tests — `test/widget/timer_screen_test.dart`. Two tests green:
+  (1) gong plays after first session delay — captures both plays in order;
+  (2) returns to idle after full sequence — asserts Start button visible.
+  Uses `setUp` fixture, `expectPlayerReceivedInOrder(List<String>)` helper,
+  derived timing constants.
 - ⏳ Manual protocol — screen lock checklist on real devices.
   Prerequisite: ADR-001 implementation complete (Step 11).
 
@@ -158,8 +159,8 @@ testers invited.
 **Last Completed**: Audio volume increased (v1.0.0+2); deployed to
 TestFlight Jan 17, 2026
 
-**Next Immediate Task**: Step 4 — write widget tests for
-`_runExerciseSequence()` (see activeContext.md)
+**Next Immediate Task**: Step 5 — wire `_runExerciseSequence()` to
+`TimerSchedule.buildEvents()` (see activeContext.md)
 
 **Version Tracking**:
 
