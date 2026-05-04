@@ -1,0 +1,1 @@
+../../../ai-agent-workspace/rules-banks/clean-code/600-strict-tdd.md
