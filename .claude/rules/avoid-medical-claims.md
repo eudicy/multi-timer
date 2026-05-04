@@ -1,8 +1,3 @@
----
-alwaysApply: true
-description: Avoid medical and therapeutic claims for regulatory compliance
----
-
 # Avoid Medical and Therapeutic Claims
 
 ## Regulatory Context
